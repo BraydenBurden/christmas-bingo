@@ -222,6 +222,7 @@ button {
   font-weight: 700;
   font-size: 13px;
   cursor: pointer;
+  margin-top: 12px;
 }
 
 .new-card-button:hover {
