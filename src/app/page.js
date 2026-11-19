@@ -120,19 +120,10 @@ export default function Home() {
           </div>
         )}
 
-        <p className="instructions">
-          Tap a square whenever you spot that trope in the movie.
-        </p>
-
         <button className="new-card-button" onClick={newCard}>
           <RefreshCw size={18} />
           Generate New Card
         </button>
-
-        <p className="save-note">
-          <Gift size={14} />
-          Your card and progress are automatically saved on this device.
-        </p>
       </section>
     </main>
   );
