@@ -1,69 +1,139 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+import { RefreshCw, Snowflake, Trophy, Gift, Sparkles } from "lucide-react";
+
+import BingoCard from "@/components/BingoCard";
+import tropes from "@/components/data/tropes";
+
+function generateCard() {
+  const shuffled = [...tropes].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, 25).map((trope, index) => {
+    return index === 12 ? "FREE" : trope;
+  });
+}
+
+function checkBingo(marked) {
+  const lines = [
+    // Rows
+    [0, 1, 2, 3, 4],
+    [5, 6, 7, 8, 9],
+    [10, 11, 12, 13, 14],
+    [15, 16, 17, 18, 19],
+    [20, 21, 22, 23, 24],
+
+    // Columns
+    [0, 5, 10, 15, 20],
+    [1, 6, 11, 16, 21],
+    [2, 7, 12, 17, 22],
+    [3, 8, 13, 18, 23],
+    [4, 9, 14, 19, 24],
+
+    // Diagonals
+    [0, 6, 12, 18, 24],
+    [4, 8, 12, 16, 20],
+  ];
+
+  return lines.some((line) => line.every((index) => marked.includes(index)));
+}
 
 export default function Home() {
+  const [squares, setSquares] = useState([]);
+  const [markedSquares, setMarkedSquares] = useState([12]);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const savedCard = localStorage.getItem("christmas-bingo-card");
+    const savedMarks = localStorage.getItem("christmas-bingo-marks");
+
+    if (savedCard) {
+      setSquares(JSON.parse(savedCard));
+      setMarkedSquares(savedMarks ? JSON.parse(savedMarks) : [12]);
+    } else {
+      const newCard = generateCard();
+      setSquares(newCard);
+      localStorage.setItem("christmas-bingo-card", JSON.stringify(newCard));
+    }
+
+    setReady(true);
+  }, []);
+
+  function toggleSquare(index) {
+    const updated = markedSquares.includes(index)
+      ? markedSquares.filter((item) => item !== index)
+      : [...markedSquares, index];
+
+    setMarkedSquares(updated);
+    localStorage.setItem("christmas-bingo-marks", JSON.stringify(updated));
+  }
+
+  function newCard() {
+    const newSquares = generateCard();
+
+    setSquares(newSquares);
+    setMarkedSquares([12]);
+
+    localStorage.setItem("christmas-bingo-card", JSON.stringify(newSquares));
+
+    localStorage.setItem("christmas-bingo-marks", JSON.stringify([12]));
+  }
+
+  const hasBingo = checkBingo(markedSquares);
+
+  if (!ready) return null;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="app-container">
+      <section className="hero">
+        <h1>
+          Christmas Movie
+          <span>Trope Bingo</span>
+        </h1>
+      </section>
+
+      <section className="game-section">
+        <div className="card-heading">
+          <div>
+            <p className="eyebrow">YOUR BINGO CARD</p>
+            <h2>Let the games begin!</h2>
+          </div>
+
+          <div className="card-counter">
+            {markedSquares.length - 1} / 24
+            <span>SPOTTED</span>
+          </div>
+        </div>
+
+        <BingoCard
+          squares={squares}
+          markedSquares={markedSquares}
+          onToggle={toggleSquare}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.js
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        {hasBingo && (
+          <div className="bingo-message">
+            <Trophy size={25} />
+            <div>
+              <strong>BINGO!</strong>
+            </div>
+            <Sparkles size={22} />
+          </div>
+        )}
+
+        <p className="instructions">
+          Tap a square whenever you spot that trope in the movie.
+        </p>
+
+        <button className="new-card-button" onClick={newCard}>
+          <RefreshCw size={18} />
+          Generate New Card
+        </button>
+
+        <p className="save-note">
+          <Gift size={14} />
+          Your card and progress are automatically saved on this device.
+        </p>
+      </section>
+    </main>
   );
 }
